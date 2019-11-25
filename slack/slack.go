@@ -7,12 +7,7 @@ import (
 	"github.com/nlopes/slack"
 )
 
-/*
-   TODO: Change @BOT_NAME to the same thing you entered when creating your Slack application.
-   NOTE: command_arg_1 and command_arg_2 represent optional parameteras that you define
-   in the Slack API UI
-*/
-const helpMessage = "type in '@BOT_NAME <command_arg_1> <command_arg_2>'"
+const helpMessage = "type in '@pig-latin <command_arg_1> <command_arg_2>'"
 
 /*
    CreateSlackClient sets up the slack RTM (real-timemessaging) client library,
@@ -43,6 +38,7 @@ func RespondToEvents(slackClient *slack.RTM) {
 			}
 			message := strings.Replace(ev.Msg.Text, botTagString, "", -1)
 
+			fmt.Println(message)
 			// TODO: Make your bot do more than respond to a help command. See notes below.
 			// Make changes below this line and add additional funcs to support your bot's functionality.
 			// sendHelp is provided as a simple example. Your team may want to call a free external API
@@ -53,12 +49,42 @@ func RespondToEvents(slackClient *slack.RTM) {
 			// ===============================================================
 			sendResponse(slackClient, message, ev.Channel)
 			sendHelp(slackClient, message, ev.Channel)
+			sendPigLatin(slackClient, message, ev.Channel)
 			// ===============================================================
 			// END SLACKBOT CUSTOM CODE
 		default:
 
 		}
 	}
+}
+
+// pig latin logic inspired by https://github.com/stretchr/piglatin/
+const (
+	pigLatinSuffix             string = "ay"
+	vowels                     string = "aeiou"
+	firstLetterExceptionSuffix string = "d" + pigLatinSuffix
+)
+
+// sendPigLatin translates one or more english words into the PigLatin equlivent
+func sendPigLatin(slackClient *slack.RTM, message, slackChannel string) {
+	var pigLatinWords []string
+	englishWords := strings.Split(message, " ")
+
+	if len(message) == 0 && message == " " {
+		return
+	}
+
+	for _, word := range englishWords {
+		first := word[0:1]
+		if strings.Contains(vowels, first) {
+			pigLatinWords = append(pigLatinWords, word+firstLetterExceptionSuffix)
+		} else {
+			pigLatinWords = append(pigLatinWords, word[1:]+first+pigLatinSuffix)
+		}
+	}
+
+	pigLatinString := strings.Join(pigLatinWords, " ")
+	slackClient.SendMessage(slackClient.NewOutgoingMessage(pigLatinString, slackChannel))
 }
 
 // sendHelp is a working help message, for reference.
