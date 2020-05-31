@@ -58,7 +58,6 @@ func RespondToEvents(slackClient *slack.RTM) {
 	}
 }
 
-// pig latin logic inspired by https://github.com/stretchr/piglatin/
 const (
 	pigLatinSuffix             string = "ay"
 	vowels                     string = "aeiou"
